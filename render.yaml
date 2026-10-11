@@ -3,6 +3,7 @@ services:
     name: pet-care-planner
     env: node
     plan: free
+    rootDir: .
     buildCommand: npm run build
     startCommand: npm start
     healthCheckPath: /api/status

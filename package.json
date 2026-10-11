@@ -6,7 +6,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "npm --prefix Frontend install && npm --prefix Frontend run build",
+    "build": "npm run install:all && npm run build:frontend",
     "start": "node Backend/server.js",
     "build:frontend": "npm --prefix Frontend run build",
     "start:backend": "npm --prefix Backend run start",
@@ -16,4 +16,3 @@
     "dev:backend": "npm --prefix Backend run dev"
   }
 }
-

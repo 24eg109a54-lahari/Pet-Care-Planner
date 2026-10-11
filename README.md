@@ -141,6 +141,7 @@ The backend provides a clean RESTful API with CORS enabled, JSON data persistenc
    ```
    http://localhost:5000/api/status
    ```
+   The root `npm start` command also serves the built frontend and loads database settings from `Backend/.env`.
 
 ---
 
@@ -150,7 +151,7 @@ From the root project directory (`pet-care-planner/`), you can use:
 
 | Command | Action |
 |---------|--------|
-| `npm run build` | Installs frontend dependencies and builds production bundle |
+| `npm run build` | Installs backend and frontend dependencies and builds the frontend bundle |
 | `npm start` | Starts the unified production server (serves Frontend & Backend API) |
 | `npm run dev:frontend` | Starts Vite development server for the Frontend |
 | `npm run dev:backend` | Starts the Backend REST server with live reload |
@@ -169,6 +170,7 @@ This project is fully configured for zero-configuration, seamless deployment on 
 3. Select your repository.
 4. Render will automatically read [`render.yaml`](file:///d:/projects/Pet%20care%20planner/pet-care-planner/render.yaml) and configure the web service with:
    - **Environment**: Node
+   - **Root Directory**: repository root (`.`)
    - **Build Command**: `npm run build`
    - **Start Command**: `npm start`
    - **Health Check Path**: `/api/status`
@@ -180,6 +182,7 @@ This project is fully configured for zero-configuration, seamless deployment on 
 3. Configure settings:
    - **Name**: `pet-care-planner`
    - **Language**: `Node`
+   - **Root Directory**: repository root (leave blank in Render; do not set it to `Backend`)
    - **Branch**: `main` (or your active branch)
    - **Build Command**: `npm run build`
    - **Start Command**: `npm start`
