@@ -1,15 +1,16 @@
-import { readDb, writeDb } from "../config/db.js";
+import { readDb, writeDb, isUsingMySql, mysqlReadAll, mysqlInsert, mysqlDeleteById } from "../config/db.js";
 
 export const Reminder = {
   async findAll() {
+    if (isUsingMySql()) return mysqlReadAll("reminders");
     const db = await readDb();
     return db.reminders || [];
   },
 
   async create(data) {
-    const db = await readDb();
     const newReminder = {
       id: data.id || "rem_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8),
+      userId: data.userId || "",
       petId: data.petId || "",
       petName: data.petName || "",
       title: data.title || "",
@@ -18,16 +19,24 @@ export const Reminder = {
       time: data.time || "",
       repeat: data.repeat || "None",
       notes: data.notes || "",
-      completed: !!data.completed,
+      completed: data.completed ? 1 : 0,
       createdAt: new Date().toISOString(),
     };
-    db.reminders = db.reminders || [];
-    db.reminders.push(newReminder);
-    await writeDb(db);
+    if (isUsingMySql()) {
+      await mysqlInsert("reminders", newReminder);
+      newReminder.completed = Boolean(newReminder.completed);
+    } else {
+      newReminder.completed = !!data.completed;
+      const db = await readDb();
+      db.reminders = db.reminders || [];
+      db.reminders.push(newReminder);
+      await writeDb(db);
+    }
     return newReminder;
   },
 
   async delete(id) {
+    if (isUsingMySql()) return mysqlDeleteById("reminders", id);
     const db = await readDb();
     const initialLen = (db.reminders || []).length;
     db.reminders = (db.reminders || []).filter((r) => String(r.id) !== String(id));

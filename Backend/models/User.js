@@ -1,4 +1,4 @@
-import { readDb, writeDb } from "../config/db.js";
+import { readDb, writeDb, isUsingMySql, mysqlReadAll, mysqlInsert, mysqlDeleteById } from "../config/db.js";
 import crypto from "crypto";
 
 function hashPassword(password) {
@@ -15,16 +15,26 @@ export const User = {
   },
 
   async findByEmail(email) {
+    if (isUsingMySql()) {
+      const rows = await mysqlReadAll("users");
+      return rows.find((u) => String(u.email || "").toLowerCase() === String(email || "").toLowerCase()) || null;
+    }
     const db = await readDb();
-    return (
-      (db.users || []).find(
-        (u) => String(u.email || "").toLowerCase() === String(email || "").toLowerCase()
-      ) || null
-    );
+    return (db.users || []).find(
+      (u) => String(u.email || "").toLowerCase() === String(email || "").toLowerCase()
+    ) || null;
+  },
+
+  async findById(id) {
+    if (isUsingMySql()) {
+      const rows = await mysqlReadAll("users");
+      return rows.find((u) => String(u.id) === String(id)) || null;
+    }
+    const db = await readDb();
+    return (db.users || []).find((u) => String(u.id) === String(id)) || null;
   },
 
   async create(data) {
-    const db = await readDb();
     const newUser = {
       id: data.id || "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8),
       name: data.name || "",
@@ -32,10 +42,16 @@ export const User = {
       password: hashPassword(data.password || ""),
       createdAt: new Date().toISOString(),
     };
-    db.users = db.users || [];
-    db.users.push(newUser);
-    await writeDb(db);
+
+    if (isUsingMySql()) {
+      await mysqlInsert("users", newUser);
+    } else {
+      const db = await readDb();
+      db.users = db.users || [];
+      db.users.push(newUser);
+      await writeDb(db);
+    }
+
     return { id: newUser.id, name: newUser.name, email: newUser.email };
   },
 };
-

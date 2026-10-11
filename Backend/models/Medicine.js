@@ -1,15 +1,16 @@
-import { readDb, writeDb } from "../config/db.js";
+import { readDb, writeDb, isUsingMySql, mysqlReadAll, mysqlInsert, mysqlDeleteById } from "../config/db.js";
 
 export const Medicine = {
   async findAll() {
+    if (isUsingMySql()) return mysqlReadAll("medicines");
     const db = await readDb();
     return db.medicines || [];
   },
 
   async create(data) {
-    const db = await readDb();
     const newMedicine = {
       id: data.id || "med_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8),
+      userId: data.userId || "",
       petId: data.petId || "",
       petName: data.petName || "",
       name: data.name || data.medicineName || "",
@@ -21,13 +22,19 @@ export const Medicine = {
       prescribedBy: data.prescribedBy || "",
       createdAt: new Date().toISOString(),
     };
-    db.medicines = db.medicines || [];
-    db.medicines.push(newMedicine);
-    await writeDb(db);
+    if (isUsingMySql()) {
+      await mysqlInsert("medicines", newMedicine);
+    } else {
+      const db = await readDb();
+      db.medicines = db.medicines || [];
+      db.medicines.push(newMedicine);
+      await writeDb(db);
+    }
     return newMedicine;
   },
 
   async delete(id) {
+    if (isUsingMySql()) return mysqlDeleteById("medicines", id);
     const db = await readDb();
     const initialLen = (db.medicines || []).length;
     db.medicines = (db.medicines || []).filter((m) => String(m.id) !== String(id));

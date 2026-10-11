@@ -1,15 +1,16 @@
-import { readDb, writeDb } from "../config/db.js";
+import { readDb, writeDb, isUsingMySql, mysqlReadAll, mysqlInsert, mysqlDeleteById } from "../config/db.js";
 
 export const Task = {
   async findAll() {
+    if (isUsingMySql()) return mysqlReadAll("tasks");
     const db = await readDb();
     return db.tasks || [];
   },
 
   async create(data) {
-    const db = await readDb();
     const newTask = {
       id: data.id || "task_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8),
+      userId: data.userId || "",
       petId: data.petId || "",
       petName: data.petName || "",
       task: data.task || "",
@@ -20,13 +21,19 @@ export const Task = {
       notes: data.notes || "",
       createdAt: new Date().toISOString(),
     };
-    db.tasks = db.tasks || [];
-    db.tasks.push(newTask);
-    await writeDb(db);
+    if (isUsingMySql()) {
+      await mysqlInsert("tasks", newTask);
+    } else {
+      const db = await readDb();
+      db.tasks = db.tasks || [];
+      db.tasks.push(newTask);
+      await writeDb(db);
+    }
     return newTask;
   },
 
   async delete(id) {
+    if (isUsingMySql()) return mysqlDeleteById("tasks", id);
     const db = await readDb();
     const initialLen = (db.tasks || []).length;
     db.tasks = (db.tasks || []).filter((t) => String(t.id) !== String(id));

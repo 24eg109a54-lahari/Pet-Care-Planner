@@ -1,15 +1,16 @@
-import { readDb, writeDb } from "../config/db.js";
+import { readDb, writeDb, isUsingMySql, mysqlReadAll, mysqlInsert, mysqlDeleteById } from "../config/db.js";
 
 export const LostPet = {
   async findAll() {
+    if (isUsingMySql()) return mysqlReadAll("lostPets");
     const db = await readDb();
     return db.lostPets || [];
   },
 
   async create(data) {
-    const db = await readDb();
     const newReport = {
       id: data.id || "lost_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8),
+      userId: data.userId || "",
       petName: data.petName || data.name || "",
       type: data.type || "Pet",
       breed: data.breed || "",
@@ -21,13 +22,19 @@ export const LostPet = {
       status: data.status || "Missing",
       createdAt: new Date().toISOString(),
     };
-    db.lostPets = db.lostPets || [];
-    db.lostPets.push(newReport);
-    await writeDb(db);
+    if (isUsingMySql()) {
+      await mysqlInsert("lostPets", newReport);
+    } else {
+      const db = await readDb();
+      db.lostPets = db.lostPets || [];
+      db.lostPets.push(newReport);
+      await writeDb(db);
+    }
     return newReport;
   },
 
   async delete(id) {
+    if (isUsingMySql()) return mysqlDeleteById("lostPets", id);
     const db = await readDb();
     const initialLen = (db.lostPets || []).length;
     db.lostPets = (db.lostPets || []).filter((lp) => String(lp.id) !== String(id));
