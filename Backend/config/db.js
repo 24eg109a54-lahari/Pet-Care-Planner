@@ -4,9 +4,9 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
-dotenv.config();
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: join(__dirname, "..", ".env") });
+
 const dataDir = join(__dirname, "..", "data");
 const dbFile = join(dataDir, "database.json");
 
@@ -32,8 +32,10 @@ function createMySqlPool() {
 
   try {
     if (uri) {
+      const connectionUri = new URL(uri);
+      connectionUri.searchParams.delete("ssl-mode");
       pool = mysql.createPool({
-        uri,
+        uri: connectionUri.toString(),
         ssl: { rejectUnauthorized: false },
         waitForConnections: true,
         connectionLimit: 10,
