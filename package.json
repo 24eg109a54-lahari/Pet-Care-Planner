@@ -1,0 +1,19 @@
+{
+  "name": "pet-care-planner",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "npm --prefix Frontend install && npm --prefix Frontend run build",
+    "start": "node Backend/server.js",
+    "build:frontend": "npm --prefix Frontend run build",
+    "start:backend": "npm --prefix Backend run start",
+    "install:all": "npm --prefix Frontend install && npm --prefix Backend install",
+    "dev": "npm --prefix Frontend run dev",
+    "dev:frontend": "npm --prefix Frontend run dev",
+    "dev:backend": "npm --prefix Backend run dev"
+  }
+}
+
